@@ -1,40 +1,51 @@
-import { Movie } from '@/types/movie';
+import mongoose from 'mongoose';
 
-// Mock database
-let movies: Movie[] = [];
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
 
-export const db = {
-  movies: {
-    findMany: () => movies,
-    findUnique: (id: string) => movies.find(movie => movie.id === id),
-    create: (data: Omit<Movie, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const movie: Movie = {
-        id: Math.random().toString(36).substr(2, 9),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        ...data,
-      };
-      movies.push(movie);
-      return movie;
-    },
-    update: (id: string, data: Partial<Movie>) => {
-      const index = movies.findIndex(movie => movie.id === id);
-      if (index === -1) return null;
-      
-      movies[index] = {
-        ...movies[index],
-        ...data,
-        updatedAt: new Date(),
-      };
-      return movies[index];
-    },
-    delete: (id: string) => {
-      const index = movies.findIndex(movie => movie.id === id);
-      if (index === -1) return null;
-      
-      const movie = movies[index];
-      movies = movies.filter(movie => movie.id !== id);
-      return movie;
-    },
-  },
-}; 
+declare global {
+  var mongoose: MongooseCache | undefined;
+}
+
+const MONGODB_URI = process.env.MONGODB_URI!;
+
+if (!MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable');
+}
+
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = {
+    conn: null,
+    promise: null
+  };
+}
+
+async function connectDB(): Promise<typeof mongoose> {
+  if (cached!.conn) {
+    return cached!.conn;
+  }
+
+  if (!cached!.promise) {
+    const opts = {
+      bufferCommands: true,
+    };
+
+    cached!.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      return mongoose;
+    });
+  }
+
+  try {
+    cached!.conn = await cached!.promise;
+    return cached!.conn;
+  } catch (e) {
+    cached!.promise = null;
+    throw e;
+  }
+}
+
+export default connectDB;
