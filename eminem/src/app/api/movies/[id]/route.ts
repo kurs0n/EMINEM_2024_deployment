@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import connectDB from '@/lib/db';
+import { Movie } from '@/models/movie';
+import mongoose from 'mongoose';
 
 interface RouteParams {
   params: {
@@ -9,23 +11,17 @@ interface RouteParams {
 
 // GET single movie
 export async function GET(request: Request, { params }: RouteParams) {
-  const movie = db.movies.findUnique(params.id);
-  
-  if (!movie) {
-    return NextResponse.json(
-      { error: 'Movie not found' },
-      { status: 404 }
-    );
-  }
-  
-  return NextResponse.json(movie);
-}
-
-// PUT/UPDATE movie
-export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const body = await request.json();
-    const movie = db.movies.update(params.id, body);
+    await connectDB();
+    
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid movie ID' },
+        { status: 400 }
+      );
+    }
+
+    const movie = await Movie.findById(params.id);
     
     if (!movie) {
       return NextResponse.json(
@@ -36,6 +32,43 @@ export async function PUT(request: Request, { params }: RouteParams) {
     
     return NextResponse.json(movie);
   } catch (error) {
+    console.error('Failed to fetch movie:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch movie' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT/UPDATE movie
+export async function PUT(request: Request, { params }: RouteParams) {
+  try {
+    await connectDB();
+
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid movie ID' },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.json();
+    const movie = await Movie.findByIdAndUpdate(
+      params.id,
+      { $set: body },
+      { new: true, runValidators: true }
+    );
+    
+    if (!movie) {
+      return NextResponse.json(
+        { error: 'Movie not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(movie);
+  } catch (error) {
+    console.error('Failed to update movie:', error);
     return NextResponse.json(
       { error: 'Failed to update movie' },
       { status: 400 }
@@ -45,14 +78,31 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
 // DELETE movie
 export async function DELETE(request: Request, { params }: RouteParams) {
-  const movie = db.movies.delete(params.id);
-  
-  if (!movie) {
+  try {
+    await connectDB();
+
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid movie ID' },
+        { status: 400 }
+      );
+    }
+
+    const movie = await Movie.findByIdAndDelete(params.id);
+    
+    if (!movie) {
+      return NextResponse.json(
+        { error: 'Movie not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(movie);
+  } catch (error) {
+    console.error('Failed to delete movie:', error);
     return NextResponse.json(
-      { error: 'Movie not found' },
-      { status: 404 }
+      { error: 'Failed to delete movie' },
+      { status: 500 }
     );
   }
-  
-  return NextResponse.json(movie);
 } 
