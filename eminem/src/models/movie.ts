@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 const movieSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
-  releaseDate: { type: Date },
-  // Add other fields as needed
+  release_date: { type: String, required: true },
+  poster_path: { type: String, required: true },
 }, {
   timestamps: true
 });

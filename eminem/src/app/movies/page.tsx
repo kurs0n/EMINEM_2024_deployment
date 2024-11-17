@@ -66,6 +66,14 @@ const MoviesPage = () => {
     });
   };
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.src = '/placeholder-movie.jpg';
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toISOString().split('T')[0];
+  };
+
   return (
     <div>
       <Navbar />
@@ -76,26 +84,41 @@ const MoviesPage = () => {
         <form onSubmit={handleSubmit} className="mb-8 bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-bold mb-4">{editingMovie ? 'Edit Movie' : 'Add New Movie'}</h2>
           <div className="grid grid-cols-1 gap-4">
-            <input
-              type="text"
-              placeholder="Movie Title"
-              value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
-              className="border p-2 rounded"
-            />
-            <input
-              type="date"
-              value={formData.release_date}
-              onChange={(e) => setFormData({...formData, release_date: e.target.value})}
-              className="border p-2 rounded"
-            />
-            <input
-              type="text"
-              placeholder="Poster Path"
-              value={formData.poster_path}
-              onChange={(e) => setFormData({...formData, poster_path: e.target.value})}
-              className="border p-2 rounded"
-            />
+            <div>
+              <label className="block text-sm font-medium mb-1">Movie Title</label>
+              <input
+                type="text"
+                placeholder="Movie Title"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                className="border p-2 rounded w-full"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Release Date</label>
+              <input
+                type="date"
+                value={formData.release_date}
+                onChange={(e) => setFormData({...formData, release_date: formatDate(e.target.value)})}
+                className="border p-2 rounded w-full"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Poster Path</label>
+              <input
+                type="text"
+                placeholder="e.g., /1234567890.jpg"
+                value={formData.poster_path}
+                onChange={(e) => setFormData({...formData, poster_path: e.target.value})}
+                className="border p-2 rounded w-full"
+                required
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Enter the TMDB poster path (e.g., /1234567890.jpg)
+              </p>
+            </div>
             <button 
               type="submit" 
               className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
@@ -109,13 +132,18 @@ const MoviesPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {movies.map((movie) => (
             <div key={movie._id} className="bg-white shadow-md rounded p-4">
-              <img
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                alt={movie.title}
-                className="w-full h-64 object-cover rounded"
-              />
+              <div className="relative pt-[150%]">
+                <img
+                  src={`${movie.poster_path}`}
+                  alt={movie.title}
+                  onError={handleImageError}
+                  className="absolute top-0 left-0 w-full h-full object-cover rounded"
+                />
+              </div>
               <h3 className="mt-4 font-bold text-lg">{movie.title}</h3>
-              <p className="text-gray-500">Release Date: {movie.release_date}</p>
+              <p className="text-gray-500">
+                Release Date: {new Date(movie.release_date).toLocaleDateString()}
+              </p>
               <div className="mt-4 flex gap-2">
                 <button
                   onClick={() => handleEdit(movie)}
