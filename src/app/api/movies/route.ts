@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import { Movie } from '@/models/movie';
-
 // GET all movies
 export async function GET() {
   try {

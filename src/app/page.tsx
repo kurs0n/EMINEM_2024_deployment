@@ -34,7 +34,7 @@ const HomePage = () => {
       <div className="container mx-auto p-6">
         <h1 className="text-3xl font-bold mb-6">Upcoming Movies</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {movies.map((movie) => (
+          {movies.map((movie: any) => (
             <div key={movie.id} className="bg-white shadow-md rounded p-4">
               <img
                 src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}

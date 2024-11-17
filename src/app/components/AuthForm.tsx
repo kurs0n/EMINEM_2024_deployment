@@ -28,7 +28,7 @@ const AuthForm = () => {
       // e.g., redirect to another page, or show a success message
       console.log("Success:", response.data);
       
-    } catch (error) {
+    } catch (error: any) {
       // If the error has a response (error from the server), use that message; otherwise, use a generic message.
       const message = error.response?.data?.message || 'An error occurred';
       console.error("Error:", message);
