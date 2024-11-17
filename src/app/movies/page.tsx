@@ -67,7 +67,7 @@ const MoviesPage = () => {
   };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = '/placeholder-movie.jpg';
+    e.currentTarget.src = '/placeholder-movie.jpeg';
   };
 
   const formatDate = (dateString: string) => {
